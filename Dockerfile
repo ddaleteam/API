@@ -8,4 +8,6 @@ EXPOSE 9000
 
 COPY ./app /app
 
+WORKDIR /app
+
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "9000"]
