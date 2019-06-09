@@ -1,0 +1,11 @@
+services:
+  - docker
+
+script:
+  - docker build -t ddale/api .
+
+deploy:
+  provider: script
+  script: bash ci_script/docker_push.sh
+  on:
+    branch: master
