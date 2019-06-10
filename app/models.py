@@ -1,18 +1,24 @@
 from pydantic import BaseModel,UrlStr
 from datetime import datetime
 from typing import List
+from enum import Enum
 
-class Composition(BaseModel):
+class TypeCalque(Enum):
+    composition = "composition"
+    anecdote = "anecdote"
+
+class Calque(BaseModel):
     id:int
+    typeCalque: TypeCalque
     description:str
-    calque:UrlStr
+    urlCalque:UrlStr
 
 class Oeuvre(BaseModel):
     id:int
     titre:str
     auteur:str
     date:datetime
-    tableauImg:UrlStr
-    compositions:List[Composition]
+    urlCible:UrlStr
+    calques:List[Calque]
 
 
