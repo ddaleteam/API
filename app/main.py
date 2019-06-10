@@ -8,7 +8,7 @@ from starlette.staticfiles import StaticFiles
 app = FastAPI()
 
 oeuvres = [
-    Oeuvre(id=1, titre="La Méduse", auteur="Nymous", date=datetime.now(), urlCible="https://example.com", calques=[
+    Oeuvre(id=1, titre="La Méduse", auteur="Nymous", technique="pate à modeler", hauteur="4910", largeur="7160", annee=1818, urlCible="https://example.com", calques=[
         Calque(id=1, typeCalque=TypeCalque.composition, description="Le triangle de l'amour", urlCalque="https://example.org/calque"),
         Calque(id=2, typeCalque=TypeCalque.anecdote, description="Le carré de la haine", urlCalque="https://example.org/carre"),
     ])
