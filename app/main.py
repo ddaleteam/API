@@ -23,6 +23,9 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
+# TODO : Ce serait bien de mettre ça dans le fichier models.py.
+# Transcription des classes de models pour les rendre 
+# au même format que la BdD.
 class OeuvreDb(Base):
     __tablename__ = "oeuvres"
     id = Column(Integer, primary_key=True, nullable=False)
@@ -34,6 +37,7 @@ class OeuvreDb(Base):
     annee = Column(Integer, nullable = False)
     urlCible = Column(String, nullable=False)
     urlAudio = Column(String,nullable=False)
+    # Le champs 'calques' permet de réaliser la jointure vers les calques.
     calques = relationship("CalqueDb", back_populates="oeuvre")
 
 
@@ -44,33 +48,33 @@ class CalqueDb(Base):
     description = Column(String, nullable=False)
     urlCalque = Column(String, nullable=False)
     urlAudio = Column(String,nullable=False)
+    # Le champs 'oeuvre_id' contient l'id de l'oeuvre.
     oeuvre_id = Column(Integer, ForeignKey("oeuvres.id"), nullable=False)
+    # Le champs 'oeuvre' permet de réaliser la jointure vers l'oeuvre.
     oeuvre = relationship("OeuvreDb", back_populates="calques")
-
-calques = [
-    CalqueDb(id=1, typeCalque=TypeCalque.anecdote, description="Le triangle de l'amour", urlCalque="https://example.org/calque", urlAudio="https://example.com", oeuvre_id=1),
-    CalqueDb(id=2, typeCalque=TypeCalque.composition, description="Le carré de la haine", urlCalque="https://example.org/carre", urlAudio="https://example.com", oeuvre_id=1)
-]
+# Faire la jointure dans les deux sens permet de charger le calque à partir de l'oeuvre et vice-versa.
 
 Base.metadata.create_all(bind=engine)
 db_session = SessionLocal()
 
-test_oeuvre = OeuvreDb(id=1, titre="La Méduse", auteur="Nymous", technique="pate à modeler", hauteur="491", largeur="716", annee=1818, urlCible="https://example.com", urlAudio="https://aiunrste.com",
-calques = [
-    CalqueDb(id=1, typeCalque="anecdote", description="Le triangle de l'amour", urlCalque="https://example.org/calque", urlAudio="https://example.com", oeuvre_id=1),
-    CalqueDb(id=2, typeCalque="composition", description="Le carré de la haine", urlCalque="https://example.org/carre", urlAudio="https://example.com", oeuvre_id=1)
-])
-
+## À décommenter pour reconstruire la BdD/ajouter des élémets
+#test_oeuvre = OeuvreDb(id=1, titre="La Méduse", auteur="Nymous", technique="pate à modeler", hauteur="491", largeur="716", annee=1818, urlCible="https://example.com", urlAudio="https://aiunrste.com",
+#calques = [
+#    CalqueDb(id=1, typeCalque="anecdote", description="Le triangle de l'amour", urlCalque="https://example.org/calque", urlAudio="https://example.com", oeuvre_id=1),
+#    CalqueDb(id=2, typeCalque="composition", description="Le carré de la haine", urlCalque="https://example.org/carre", urlAudio="https://example.com", oeuvre_id=1)
+#])
 #db_session.add(test_oeuvre)
 #db_session.commit()
+
 db_session.close()
 
 def get_db(request: Request):
     return request.state.db
 
 def get_oeuvre(db_session: Session, oeuvre_id: int) -> OeuvreDb:
-    print(db_session.query(OeuvreDb).options(joinedload(OeuvreDb.calques,innerjoin=True)).filter(OeuvreDb.id == oeuvre_id).first())
     return db_session.query(OeuvreDb).options(joinedload(OeuvreDb.calques,innerjoin=True)).filter(OeuvreDb.id == oeuvre_id).first()
+# L'option joinedload réalise la jointure dans python, innerjoin spécifie qu'elle se fait dans l'objet appelé.
+
 app = FastAPI()
 
 @app.get("/")
