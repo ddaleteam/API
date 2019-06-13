@@ -15,6 +15,11 @@ oeuvres = [
 ]
 
 
+
+app.mount("/calques", StaticFiles(directory="calques"), name="calque")
+app.mount("/audios", StaticFiles(directory="audios"), name="audios")
+
+
 @app.get("/")
 async def read_root():
     return {"Hello": "World"}
@@ -28,4 +33,4 @@ async def read_oeuvre(oeuvre_id: int):
         raise HTTPException(status_code=HTTP_404_NOT_FOUND)
     return oeuvre
 
-app.mount("/calques", StaticFiles(directory="calques"), name="calque")
+
