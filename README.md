@@ -10,4 +10,4 @@ Python 3.6+ nécessaire
 - Activation du virtualenv : `source .venv/bin/activate`
 - Installation des dépendances (seulement si les dépendances ont changé) : `pip install -r requirements.txt`
 - Se placer dans le dossier de l'application : `cd app/`
-- Lancer le serveur avec : `uvicorn --reload main:app`
+- Lancer le serveur avec : `uvicorn --reload main:app --host 0.0.0.0`
