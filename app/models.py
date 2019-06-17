@@ -2,6 +2,8 @@ from pydantic import BaseModel,UrlStr,Schema, PositiveInt
 from datetime import datetime
 from typing import List
 from enum import Enum
+from sqlalchemy import Boolean, Column, Integer, String, create_engine
+
 
 class TypeCalque(Enum):
     composition = "composition"
@@ -9,9 +11,13 @@ class TypeCalque(Enum):
 
 class Calque(BaseModel):
     id:int = Schema (..., gt=0,description="Id de l'oeuvre")
-    typeCalque: TypeCalque = Schema (..., description="Type de calque (composition, anecdote ...")
+    typeCalque:TypeCalque = Schema (..., description="Type de calque (composition, anecdote ...")
     description:str =Schema (...,min_length=1, description="Description du calque")
     urlCalque:UrlStr = Schema (..., description="Url de l'image du calque")
+    urlAudio:UrlStr = Schema ("",description="Url du fichier audio lié au calque")    
+    oeuvre_id:int = Schema(..., gt=0, description="Id de l'oeuvre" )
+
+
 
 class Oeuvre(BaseModel):
     id:int = Schema(..., gt=0, description="Id de l'oeuvre")
@@ -22,6 +28,7 @@ class Oeuvre(BaseModel):
     largeur:PositiveInt = Schema (..., description="Largeur de l'oeuvre en cm")
     annee: int = Schema(..., description="Année de réalisation")
     urlCible:UrlStr = Schema (...,min_length=1, description="Url de l'image du tableau")
-    calques:List[Calque] = Schema (..., description="Calques contenant des informations sur l'oeuvre")
+    urlAudio:UrlStr = Schema ("",description="Url du fichier audio pour le tableau")
 
+    calques:List[Calque] = Schema (..., description="Calques contenant des informations sur l'oeuvre")
 
