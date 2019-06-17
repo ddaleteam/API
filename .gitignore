@@ -1,5 +1,6 @@
 calques/*.png
 .vscode
+app/database_ddale.db
 
 # Created by https://www.gitignore.io/api/python
 # Edit at https://www.gitignore.io/?templates=python
