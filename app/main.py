@@ -14,9 +14,8 @@ oeuvres = [
     ])
 ]
 
-
-
-app.mount("/calques", StaticFiles(directory="calques"), name="calque")
+app.mount("/calques", StaticFiles(directory="calques"), name="calques")
+app.mount("/cibles", StaticFiles(directory="cibles"), name="cibles")
 app.mount("/audios", StaticFiles(directory="audios"), name="audios")
 
 
