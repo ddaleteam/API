@@ -36,7 +36,7 @@ class OeuvreDb(Base):
     largeur = Column(Integer, nullable = False)
     annee = Column(Integer, nullable = False)
     urlCible = Column(String, nullable=False)
-    urlAudio = Column(String,nullable=False)
+    urlAudio = Column(String)
     # Le champs 'calques' permet de réaliser la jointure vers les calques.
     calques = relationship("CalqueDb", back_populates="oeuvre")
 
