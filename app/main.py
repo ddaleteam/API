@@ -66,6 +66,7 @@ db_session = SessionLocal()
 #db_session.add(test_oeuvre)
 #db_session.commit()
 
+
 db_session.close()
 
 def get_db(request: Request):
@@ -76,6 +77,10 @@ def get_oeuvre(db_session: Session, oeuvre_id: int) -> OeuvreDb:
 # L'option joinedload réalise la jointure dans python, innerjoin spécifie qu'elle se fait dans l'objet appelé.
 
 app = FastAPI()
+
+app.mount("/calques", StaticFiles(directory="calques"), name="calques")
+app.mount("/cibles", StaticFiles(directory="cibles"), name="cibles")
+app.mount("/audios", StaticFiles(directory="audios"), name="audios")
 
 @app.get("/")
 async def read_root():
@@ -91,7 +96,6 @@ async def read_oeuvre(oeuvre_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=HTTP_404_NOT_FOUND)
     return oeuvre
 
-app.mount("/calques", StaticFiles(directory="calques"), name="calque")
 
 @app.middleware("http")
 async def db_session_middleware(request: Request, call_next) -> Response:
