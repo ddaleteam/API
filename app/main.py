@@ -57,11 +57,11 @@ class CalqueDb(Base):
 Base.metadata.create_all(bind=engine)
 db_session = SessionLocal()
 
-## À décommenter pour reconstruire la BdD/ajouter des élémets
-#test_oeuvre = OeuvreDb(id=1, titre="La Méduse", auteur="Nymous", technique="pate à modeler", hauteur="491", largeur="716", annee=1818, urlCible="https://example.com", urlAudio="https://aiunrste.com",
-#calques = [
-#    CalqueDb(id=1, typeCalque="anecdote", description="Le triangle de l'amour", urlCalque="https://example.org/calque", urlAudio="https://example.com", oeuvre_id=1),
-#    CalqueDb(id=2, typeCalque="composition", description="Le carré de la haine", urlCalque="https://example.org/carre", urlAudio="https://example.com", oeuvre_id=1)
+## À décommenter pour créer la BdD/y ajouter des élémets
+#test_oeuvre = OeuvreDb(id=1, titre="Le Radeau de la Méduse", auteur="Eugène Delacroix", technique="Huile sur Toile", hauteur="491", largeur="716", annee=1818, urlCible="https://example.com", urlAudio="https://aiunrste.com",
+#calque = [
+#    CalqueDb(id=1, typeCalque="anecdote", description="2 triangles de composition", urlCalque="https://example.org/calque", urlAudio="", oeuvre_id=1),
+#    CalqueDb(id=2, typeCalque="composition", description="1 carré", urlCalque="https://example.org/carre", urlAudio="", oeuvre_id=1)
 #])
 #db_session.add(test_oeuvre)
 #db_session.commit()
