@@ -47,7 +47,7 @@ class CalqueDb(Base):
     typeCalque = Column(String,nullable=False)
     description = Column(String, nullable=False)
     urlCalque = Column(String, nullable=False)
-    urlAudio = Column(String,nullable=False)
+    urlAudio = Column(String)
     # Le champs 'oeuvre_id' contient l'id de l'oeuvre.
     oeuvre_id = Column(Integer, ForeignKey("oeuvres.id"), nullable=False)
     # Le champs 'oeuvre' permet de réaliser la jointure vers l'oeuvre.
