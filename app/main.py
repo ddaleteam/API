@@ -57,7 +57,7 @@ class CalqueDb(Base):
 Base.metadata.create_all(bind=engine)
 db_session = SessionLocal()
 
-## À décommenter pour créer la BdD/y ajouter des élémets
+## À décommenter pour créer la BdD/y ajouter des éléments
 #test_oeuvre = OeuvreDb(id=1, titre="Le Radeau de la Méduse", auteur="Eugène Delacroix", technique="Huile sur Toile", hauteur="491", largeur="716", annee=1818, urlCible="https://example.com", urlAudio="https://aiunrste.com",
 #calque = [
 #    CalqueDb(id=1, typeCalque="anecdote", description="2 triangles de composition", urlCalque="https://example.org/calque", urlAudio="", oeuvre_id=1),
