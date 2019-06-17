@@ -9,7 +9,7 @@ from sqlalchemy.orm import validates
 from sqlalchemy import Boolean, Column, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.orm import Session, sessionmaker
-
+from sqlalchemy import exc
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import joinedload
@@ -57,14 +57,18 @@ class CalqueDb(Base):
 Base.metadata.create_all(bind=engine)
 db_session = SessionLocal()
 
-## À décommenter pour créer la BdD/y ajouter des éléments
-#test_oeuvre = OeuvreDb(id=1, titre="Le Radeau de la Méduse", auteur="Eugène Delacroix", technique="Huile sur Toile", hauteur="491", largeur="716", annee=1818, urlCible="https://example.com", urlAudio="https://aiunrste.com",
-#calque = [
-#    CalqueDb(id=1, typeCalque="anecdote", description="2 triangles de composition", urlCalque="https://example.org/calque", urlAudio="", oeuvre_id=1),
-#    CalqueDb(id=2, typeCalque="composition", description="1 carré", urlCalque="https://example.org/carre", urlAudio="", oeuvre_id=1)
-#])
-#db_session.add(test_oeuvre)
-#db_session.commit()
+# Permet de créer la base de données avec une oeuvre si ce n'est pas déjà fait
+try:
+    test_oeuvre = OeuvreDb(id=1, titre="Le Radeau de la Méduse", auteur="Eugène Delacroix", technique="Huile sur Toile", hauteur="491", largeur="716", annee=1818, urlCible="https://example.com", urlAudio="https://aiunrste.com",
+    calques = [
+        CalqueDb(id=1, typeCalque="anecdote", description="2 triangles de composition", urlCalque="https://example.org/calque", urlAudio="", oeuvre_id=1),
+        CalqueDb(id=2, typeCalque="composition", description="1 carré", urlCalque="https://example.org/carre", urlAudio="", oeuvre_id=1)
+    ])
+    db_session.add(test_oeuvre)
+    db_session.commit()
+
+except exc.IntegrityError:
+    print("BdD déjà initialisée")
 
 
 db_session.close()
