@@ -29,7 +29,7 @@ Base = declarative_base()
 class OeuvreDb(Base):
     __tablename__ = "oeuvres"
     id = Column(Integer, primary_key=True, nullable=False)
-    titre = Column(Integer, primary_key=True, nullable=False)
+    titre = Column(Integer, nullable=False)
     auteur = Column(String, nullable=False)
     technique = Column(String, nullable=False)
     hauteur = Column(Integer, nullable = False)
