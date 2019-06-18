@@ -37,11 +37,11 @@ class Oeuvre(BaseModel):
 
 Base = declarative_base()
 
-# Transcription des classes de models pour les rendre 
+# Transcription des classes de models.py pour les rendre 
 # au même format que la BdD.
 class OeuvreDb(Base):
     __tablename__ = "oeuvres"
-    id = Column(Integer, primary_key=True, nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement = True, nullable = True)
     titre = Column(Integer, nullable=False)
     auteur = Column(String, nullable=False)
     technique = Column(String, nullable=False)
@@ -56,7 +56,7 @@ class OeuvreDb(Base):
 
 class CalqueDb(Base):
     __tablename__ = "calques"
-    id = Column(Integer, primary_key=True, nullable=False)
+    id = Column(Integer, primary_key=True)
     typeCalque = Column(String,nullable=False)
     description = Column(String, nullable=False)
     urlCalque = Column(String, nullable=False)

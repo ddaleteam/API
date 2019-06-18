@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Form, File, UploadFile
 from starlette.status import HTTP_404_NOT_FOUND
 from models import Oeuvre,Calque,TypeCalque,Base,OeuvreDb,CalqueDb
 from datetime import datetime
@@ -67,6 +67,51 @@ async def read_oeuvre(oeuvre_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=HTTP_404_NOT_FOUND)
     return oeuvre
 
+@app.post("/oeuvres/", summary="Crée une oeuvre")
+async def create_oeuvre(titre: str = Form(...), auteur: str = Form(...), technique: str = Form(...),
+    hauteur: int = Form(...), largeur: int = Form(...), annee: int = Form(...), 
+    image: UploadFile = File(...), audio: UploadFile = File(...),
+    db: Session = Depends(get_db)):
+    newOeuvre = OeuvreDb()
+    newOeuvre.titre = titre
+    newOeuvre.auteur = auteur
+    newOeuvre.technique = technique
+    newOeuvre.hauteur = hauteur
+    newOeuvre.largeur = largeur
+    newOeuvre.annee = annee
+    newOeuvre.urlCible = "http://ddale.rezoleo.fr/cibles/" + image.filename
+    newOeuvre.urlAudio = "http://ddale.rezoleo.fr/audios/" + audio.filename
+    db_session.add(newOeuvre)
+    db_session.commit()
+    fichier_image = open("cibles/" + image.filename, "wb+")
+    fichier_image.write(image.file.read())
+    fichier_image.close()
+    fichier_audio = open("audios/" + audio.filename, "wb+")
+    fichier_audio.write(audio.file.read())
+    fichier_audio.close()
+    message = "Nouvelle oeuvre créée urlCible : " + "https://ddale.rezoleo.fr/cibles/" + image.filename + " urlAudio : https://ddale.rezoleo.fr/audios/" + audio.filename
+    return message
+
+@app.post("/calques/", summary="Crée un calque")
+async def create_calque(typeCalque: str = Form(...), description: str = Form(...), oeuvre_id: int = Form(...),
+    calque: UploadFile = File(...), audio: UploadFile = File(...),
+    db: Session = Depends(get_db)):
+    newCalque = CalqueDb()
+    newCalque.typeCalque = typeCalque
+    newCalque.description = description
+    newCalque.oeuvre_id = oeuvre_id
+    newCalque.urlCible = "https://ddale.rezoleo.fr/calques/" + calque.filename
+    newCalque.urlAudio = "https://ddale.rezoleo.fr/audios/" + audio.filename
+    db_session.add(newCalque)
+    db_session.commit()
+    fichier_calque = open("calques/" + calque.filename, "wb+")
+    fichier_calque.write(calque.file.read())
+    fichier_calque.close()
+    fichier_audio = open("audios/" + audio.filename, "wb+")
+    fichier_audio.write(audio.file.read())
+    fichier_audio.close()
+    message = "Nouveau calque créé urlCalque : " + "https://ddale.rezoleo.fr/calques/" + calque.filename + " urlAudio : https://ddale.rezoleo.fr/audios/" + audio.filename
+    return message
 
 @app.middleware("http")
 async def db_session_middleware(request: Request, call_next) -> Response:
