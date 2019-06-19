@@ -10,8 +10,8 @@ from sqlalchemy import Boolean, Column, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy import exc
-
 from sqlalchemy.orm import joinedload
+import random
 
 SQLALCHEMY_DATABASE_URI = "sqlite:///./database_ddale.db"
 
@@ -49,10 +49,6 @@ def get_oeuvre(db_session: Session, oeuvre_id: int) -> OeuvreDb:
 
 app = FastAPI()
 
-app.mount("/calques", StaticFiles(directory="calques"), name="calques")
-app.mount("/cibles", StaticFiles(directory="cibles"), name="cibles")
-app.mount("/audios", StaticFiles(directory="audios"), name="audios")
-
 @app.get("/")
 async def read_root():
     return {"Hello": "World"}
@@ -67,30 +63,29 @@ async def read_oeuvre(oeuvre_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=HTTP_404_NOT_FOUND)
     return oeuvre
 
+app.mount("/calques", StaticFiles(directory="calques"), name="calques")
+app.mount("/cibles", StaticFiles(directory="cibles"), name="cibles")
+app.mount("/audios", StaticFiles(directory="audios"), name="audios")
+
 @app.post("/oeuvres/", summary="Crée une oeuvre")
 async def create_oeuvre(titre: str = Form(...), auteur: str = Form(...), technique: str = Form(...),
     hauteur: int = Form(...), largeur: int = Form(...), annee: int = Form(...), 
     image: UploadFile = File(...), audio: UploadFile = File(...),
     db: Session = Depends(get_db)):
-    newOeuvre = OeuvreDb()
-    newOeuvre.titre = titre
-    newOeuvre.auteur = auteur
-    newOeuvre.technique = technique
-    newOeuvre.hauteur = hauteur
-    newOeuvre.largeur = largeur
-    newOeuvre.annee = annee
-    newOeuvre.urlCible = "http://ddale.rezoleo.fr/cibles/" + image.filename
-    newOeuvre.urlAudio = "http://ddale.rezoleo.fr/audios/" + audio.filename
+    nom_image = random.randint(100,1000)
+    nom_audio = random.randint(100,1000)
+    urlCible = "cibles/" + str(nom_image) + image.filename[-4:]
+    urlAudio = "audios/" + str(nom_audio) + audio.filename[-4:]
+    newOeuvre = OeuvreDb(titre = titre, auteur = auteur, technique = technique, hauteur = hauteur,
+    largeur = largeur, annee = annee, urlCible = urlCible, urlAudio = urlAudio)
     db_session.add(newOeuvre)
     db_session.commit()
-    fichier_image = open("cibles/" + image.filename, "wb+")
-    fichier_image.write(image.file.read())
-    fichier_image.close()
-    fichier_audio = open("audios/" + audio.filename, "wb+")
-    fichier_audio.write(audio.file.read())
-    fichier_audio.close()
-    message = "Nouvelle oeuvre créée urlCible : " + "https://ddale.rezoleo.fr/cibles/" + image.filename + " urlAudio : https://ddale.rezoleo.fr/audios/" + audio.filename
-    return message
+    with open(urlCible, "wb+") as fichier_image:
+        fichier_image.write(image.file.read())
+    with open(urlAudio,"wb+") as fichier_audio:
+        fichier_audio.write(audio.file.read())
+    print (newOeuvre.id) #sans ce print, la fonction renvoie une oeuvre vide
+    return newOeuvre
 
 @app.post("/calques/", summary="Crée un calque")
 async def create_calque(typeCalque: str = Form(...), description: str = Form(...), oeuvre_id: int = Form(...),
@@ -122,3 +117,4 @@ async def db_session_middleware(request: Request, call_next) -> Response:
     finally:
         request.state.db.close()
     return response
+
