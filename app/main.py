@@ -1,6 +1,6 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Form, File, UploadFile
 from starlette.status import HTTP_404_NOT_FOUND
-from models import Oeuvre,Calque,TypeCalque
+from models import Oeuvre,Calque,TypeCalque,Base,OeuvreDb,CalqueDb
 from datetime import datetime
 from starlette.staticfiles import StaticFiles
 from starlette.responses import Response
@@ -10,9 +10,9 @@ from sqlalchemy import Boolean, Column, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy import exc
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import relationship
 from sqlalchemy.orm import joinedload
+import uuid
+from typing import List
 
 SQLALCHEMY_DATABASE_URI = "sqlite:///./database_ddale.db"
 
@@ -21,38 +21,6 @@ engine = create_engine(
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-Base = declarative_base()
-
-# TODO : Ce serait bien de mettre ça dans le fichier models.py.
-# Transcription des classes de models pour les rendre 
-# au même format que la BdD.
-class OeuvreDb(Base):
-    __tablename__ = "oeuvres"
-    id = Column(Integer, primary_key=True, nullable=False)
-    titre = Column(Integer, nullable=False)
-    auteur = Column(String, nullable=False)
-    technique = Column(String, nullable=False)
-    hauteur = Column(Integer, nullable = False)
-    largeur = Column(Integer, nullable = False)
-    annee = Column(Integer, nullable = False)
-    urlCible = Column(String, nullable=False)
-    urlAudio = Column(String)
-    # Le champs 'calques' permet de réaliser la jointure vers les calques.
-    calques = relationship("CalqueDb", back_populates="oeuvre")
-
-
-class CalqueDb(Base):
-    __tablename__ = "calques"
-    id = Column(Integer, primary_key=True, nullable=False)
-    typeCalque = Column(String,nullable=False)
-    description = Column(String, nullable=False)
-    urlCalque = Column(String, nullable=False)
-    urlAudio = Column(String)
-    # Le champs 'oeuvre_id' contient l'id de l'oeuvre.
-    oeuvre_id = Column(Integer, ForeignKey("oeuvres.id"), nullable=False)
-    # Le champs 'oeuvre' permet de réaliser la jointure vers l'oeuvre.
-    oeuvre = relationship("OeuvreDb", back_populates="calques")
-# Faire la jointure dans les deux sens permet de charger le calque à partir de l'oeuvre et vice-versa.
 
 Base.metadata.create_all(bind=engine)
 db_session = SessionLocal()
@@ -80,11 +48,10 @@ def get_oeuvre(db_session: Session, oeuvre_id: int) -> OeuvreDb:
     return db_session.query(OeuvreDb).options(joinedload(OeuvreDb.calques,innerjoin=True)).filter(OeuvreDb.id == oeuvre_id).first()
 # L'option joinedload réalise la jointure dans python, innerjoin spécifie qu'elle se fait dans l'objet appelé.
 
-app = FastAPI()
+def get_calque(db_session: Session, oeuvre_id: int) -> List[CalqueDb]:
+    return db_session.query(CalqueDb).filter(CalqueDb.oeuvre_id == oeuvre_id).all()
 
-app.mount("/calques", StaticFiles(directory="calques"), name="calques")
-app.mount("/cibles", StaticFiles(directory="cibles"), name="cibles")
-app.mount("/audios", StaticFiles(directory="audios"), name="audios")
+app = FastAPI()
 
 @app.get("/")
 async def read_root():
@@ -100,6 +67,71 @@ async def read_oeuvre(oeuvre_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=HTTP_404_NOT_FOUND)
     return oeuvre
 
+@app.get("/oeuvres/{oeuvre_id}/calques", response_model=List[Calque])
+async def read_calque(oeuvre_id: int, db: Session = Depends(get_db)):
+    try:
+        calque = get_calque(db, oeuvre_id=oeuvre_id)
+        print(calque)
+    except FileNotFoundError:
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND)
+    return calque
+
+@app.post("/oeuvres", summary="Crée une oeuvre")
+async def create_oeuvre(titre: str = Form(...), auteur: str = Form(...), technique: str = Form(...),
+    hauteur: int = Form(...), largeur: int = Form(...), annee: int = Form(...), 
+    image: UploadFile = File(...), audio: UploadFile = File(...),
+    db: Session = Depends(get_db)):
+    # Génération d'un nom aléatoire pour les fichiers
+    nom_image = uuid.uuid4()
+    nom_audio = uuid.uuid4()
+    # Construction de l'url de l'image
+    urlCible = "cibles/" + str(nom_image) + image.filename[-4:]
+    # Si l'extension n'est pas un mp3, l'url est vide
+    # C'est la solution que nous avons trouvé car FastApi ne laisse pas la possibilité 
+    # de rendre optionel l'upload d'un fichier.
+    if (audio.filename[-4:] == ".mp3"):
+        urlAudio = "audios/" + str(nom_audio) + audio.filename[-4:]
+        with open(urlAudio,"wb+") as fichier_audio:
+            fichier_audio.write(audio.file.read())
+    else:
+        urlAudio = ""
+    with open(urlCible, "wb+") as fichier_image:
+        fichier_image.write(image.file.read())
+    # Génération de la nouvelle oeuvre
+    newOeuvre = OeuvreDb(titre = titre, auteur = auteur, technique = technique, hauteur = hauteur,
+    largeur = largeur, annee = annee, urlCible = urlCible, urlAudio = urlAudio)
+    db_session.add(newOeuvre)
+    db_session.commit()
+    print (newOeuvre.id) #sans ce print, la fonction renvoie une oeuvre vide
+    return newOeuvre
+
+@app.post("/oeuvres/{oeuvres_id}/calques", summary="Crée un calque")
+async def create_calque(typeCalque: TypeCalque = Form(...), description: str = Form(...), oeuvre_id: int = Form(...),
+    calque: UploadFile = File(...), audio: UploadFile = File(...),
+    db: Session = Depends(get_db)):
+    # Génération d'un nom aléatoire pour les fichiers
+    nom_calque = uuid.uuid4()
+    nom_audio = uuid.uuid4()
+    # Construction de l'url du calque
+    urlCalque = "calques/" + str(nom_calque) + calque.filename[-4:]
+    # Si l'extension n'est pas un mp3, l'url est vide
+    # C'est la solution que nous avons trouvé car FastApi ne laisse pas la possibilité 
+    # de rendre optionel l'upload d'un fichier.
+    if (audio.filename[-4:] == ".mp3"):
+        urlAudio = "audios/" + str(nom_audio) + audio.filename[-4:]
+        with open(urlAudio, "wb+") as fichier_audio:
+            fichier_audio.write(audio.file.read())
+    else:
+        urlAudio = ""
+    with open(urlCalque, "wb+") as fichier_calque:
+        fichier_calque.write(calque.file.read())
+    # Génération du nouveau calque
+    newCalque = CalqueDb(typeCalque = typeCalque.name, description = description, oeuvre_id = oeuvre_id,
+    urlCalque = urlCalque, urlAudio = urlAudio)
+    db_session.add(newCalque)
+    db_session.commit()
+    print(newCalque.oeuvre_id)
+    return newCalque
 
 @app.middleware("http")
 async def db_session_middleware(request: Request, call_next) -> Response:
@@ -110,3 +142,7 @@ async def db_session_middleware(request: Request, call_next) -> Response:
     finally:
         request.state.db.close()
     return response
+
+app.mount("/calques", StaticFiles(directory="calques"), name="calques")
+app.mount("/cibles", StaticFiles(directory="cibles"), name="cibles")
+app.mount("/audios", StaticFiles(directory="audios"), name="audios")
