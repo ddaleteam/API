@@ -81,18 +81,21 @@ async def create_oeuvre(titre: str = Form(...), auteur: str = Form(...), techniq
     hauteur: int = Form(...), largeur: int = Form(...), annee: int = Form(...), 
     image: UploadFile = File(...), audio: UploadFile = File(...),
     db: Session = Depends(get_db)):
-    nom_image = uuid.uuid4() # On peut tomber sur un entier déjà utilisé
+    nom_image = uuid.uuid4()
     nom_audio = uuid.uuid4()
     urlCible = "cibles/" + str(nom_image) + image.filename[-4:]
-    urlAudio = "audios/" + str(nom_audio) + audio.filename[-4:]
+    if (audio.filename[-4:] == ".mp3"):
+        urlAudio = "audios/" + str(nom_audio) + audio.filename[-4:]
+        with open(urlAudio,"wb+") as fichier_audio:
+            fichier_audio.write(audio.file.read())
+    else:
+        urlAudio = ""
+    with open(urlCible, "wb+") as fichier_image:
+        fichier_image.write(image.file.read())
     newOeuvre = OeuvreDb(titre = titre, auteur = auteur, technique = technique, hauteur = hauteur,
     largeur = largeur, annee = annee, urlCible = urlCible, urlAudio = urlAudio)
     db_session.add(newOeuvre)
     db_session.commit()
-    with open(urlCible, "wb+") as fichier_image:
-        fichier_image.write(image.file.read())
-    with open(urlAudio,"wb+") as fichier_audio:
-        fichier_audio.write(audio.file.read())
     print (newOeuvre.id) #sans ce print, la fonction renvoie une oeuvre vide
     return newOeuvre
 
@@ -103,15 +106,18 @@ async def create_calque(typeCalque: TypeCalque = Form(...), description: str = F
     nom_calque = uuid.uuid4()
     nom_audio = uuid.uuid4()
     urlCalque = "calques/" + str(nom_calque) + calque.filename[-4:]
-    urlAudio = "audios/" + str(nom_audio) + audio.filename[-4:]
+    if (audio.filename[-4:] == ".mp3"):
+        urlAudio = "audios/" + str(nom_audio) + audio.filename[-4:]
+        with open(urlAudio, "wb+") as fichier_audio:
+            fichier_audio.write(audio.file.read())
+    else:
+        urlAudio = ""
+    with open(urlCalque, "wb+") as fichier_calque:
+        fichier_calque.write(calque.file.read())
     newCalque = CalqueDb(typeCalque = typeCalque.name, description = description, oeuvre_id = oeuvre_id,
     urlCalque = urlCalque, urlAudio = urlAudio)
     db_session.add(newCalque)
     db_session.commit()
-    with open(urlCalque, "wb+") as fichier_calque:
-        fichier_calque.write(calque.file.read())
-    with open(urlAudio, "wb+") as fichier_audio:
-        fichier_audio.write(audio.file.read())
     print(newCalque.oeuvre_id)
     return newCalque
 
