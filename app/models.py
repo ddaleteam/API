@@ -13,7 +13,7 @@ class TypeCalque(Enum):
     anecdote = "anecdote"
 
 class Calque(BaseModel):
-    id:int = Schema (..., gt=0,description="Id de l'oeuvre")
+    id:int = Schema (..., gt=0,description="Id du calque")
     typeCalque:TypeCalque = Schema (..., description="Type de calque (composition, anecdote ...")
     description:str =Schema (...,min_length=1, description="Description du calque")
     urlCalque:str = Schema (..., description="Url de l'image du calque")

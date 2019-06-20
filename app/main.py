@@ -81,9 +81,14 @@ async def create_oeuvre(titre: str = Form(...), auteur: str = Form(...), techniq
     hauteur: int = Form(...), largeur: int = Form(...), annee: int = Form(...), 
     image: UploadFile = File(...), audio: UploadFile = File(...),
     db: Session = Depends(get_db)):
+    # Génération d'un nom aléatoire pour les fichiers
     nom_image = uuid.uuid4()
     nom_audio = uuid.uuid4()
+    # Construction de l'url de l'image
     urlCible = "cibles/" + str(nom_image) + image.filename[-4:]
+    # Si l'extension n'est pas un mp3, l'url est vide
+    # C'est la solution que nous avons trouvé car FastApi ne laisse pas la possibilité 
+    # de rendre optionel l'upload d'un fichier.
     if (audio.filename[-4:] == ".mp3"):
         urlAudio = "audios/" + str(nom_audio) + audio.filename[-4:]
         with open(urlAudio,"wb+") as fichier_audio:
@@ -92,6 +97,7 @@ async def create_oeuvre(titre: str = Form(...), auteur: str = Form(...), techniq
         urlAudio = ""
     with open(urlCible, "wb+") as fichier_image:
         fichier_image.write(image.file.read())
+    # Génération de la nouvelle oeuvre
     newOeuvre = OeuvreDb(titre = titre, auteur = auteur, technique = technique, hauteur = hauteur,
     largeur = largeur, annee = annee, urlCible = urlCible, urlAudio = urlAudio)
     db_session.add(newOeuvre)
@@ -103,9 +109,14 @@ async def create_oeuvre(titre: str = Form(...), auteur: str = Form(...), techniq
 async def create_calque(typeCalque: TypeCalque = Form(...), description: str = Form(...), oeuvre_id: int = Form(...),
     calque: UploadFile = File(...), audio: UploadFile = File(...),
     db: Session = Depends(get_db)):
+    # Génération d'un nom aléatoire pour les fichiers
     nom_calque = uuid.uuid4()
     nom_audio = uuid.uuid4()
+    # Construction de l'url du calque
     urlCalque = "calques/" + str(nom_calque) + calque.filename[-4:]
+    # Si l'extension n'est pas un mp3, l'url est vide
+    # C'est la solution que nous avons trouvé car FastApi ne laisse pas la possibilité 
+    # de rendre optionel l'upload d'un fichier.
     if (audio.filename[-4:] == ".mp3"):
         urlAudio = "audios/" + str(nom_audio) + audio.filename[-4:]
         with open(urlAudio, "wb+") as fichier_audio:
@@ -114,6 +125,7 @@ async def create_calque(typeCalque: TypeCalque = Form(...), description: str = F
         urlAudio = ""
     with open(urlCalque, "wb+") as fichier_calque:
         fichier_calque.write(calque.file.read())
+    # Génération du nouveau calque
     newCalque = CalqueDb(typeCalque = typeCalque.name, description = description, oeuvre_id = oeuvre_id,
     urlCalque = urlCalque, urlAudio = urlAudio)
     db_session.add(newCalque)
