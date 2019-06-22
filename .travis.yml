@@ -2,7 +2,7 @@ services:
   - docker
 
 script:
-  - docker build -t ddale/api .
+  - docker build --build-arg API_VERSION ${TRAVIS_COMMIT} -t ddale/api .
 
 deploy:
   provider: script

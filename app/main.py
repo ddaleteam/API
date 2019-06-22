@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy import exc
 from sqlalchemy.orm import joinedload
 import uuid
+import os
 from typing import List, Optional
 
 SQLALCHEMY_DATABASE_URI = "sqlite:///./database_ddale.db"
@@ -81,7 +82,7 @@ def get_calque(db_session: Session, oeuvre_id: int) -> List[Optional[CalqueDb]]:
     return db_session.query(CalqueDb).filter(CalqueDb.oeuvre_id == oeuvre_id).all()
 
 
-app = FastAPI()
+app = FastAPI(title="DDale API", version=os.environ["API_VERSION"])
 
 
 @app.get("/")
