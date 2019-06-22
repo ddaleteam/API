@@ -12,4 +12,7 @@ VOLUME [ "/app/calques", "/app/audios", "/app/cibles" ]
 
 WORKDIR /app
 
+ARG API_VERSION
+ENV API_VERSION ${API_VERSION}
+
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "9000"]
