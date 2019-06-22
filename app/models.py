@@ -1,6 +1,6 @@
 from pydantic import BaseModel, UrlStr, Schema, PositiveInt
 from datetime import datetime
-from typing import List
+from typing import List,Optional
 from enum import Enum
 from sqlalchemy import Boolean, Column, Integer, String, create_engine
 from sqlalchemy import ForeignKey
@@ -36,9 +36,16 @@ class Oeuvre(BaseModel):
     urlAudio: str = Schema("", description="Url du fichier audio pour le tableau")
 
     calques: List[Calque] = Schema(
-        ..., description="Calques contenant des informations sur l'oeuvre"
+        [], description="Calques contenant des informations sur l'oeuvre"
     )
 
+class PutOeuvre(BaseModel):
+    titre: Optional[str] = Schema(None, min_length=1, description="Titre de l'oeuvre")
+    auteur:Optional[str] = Schema(None,min_length=1, description="Créateur de l'oeuvre")
+    technique: Optional[str] = Schema (None,min_length=1, description= "Technique utilisée")
+    hauteur:Optional[PositiveInt] = Schema (None , description= "Hauteur de l'oeuvre en cm")
+    largeur:Optional[PositiveInt] = Schema (None, description="Largeur de l'oeuvre en cm")
+    annee: Optional[int] = Schema(None, description="Année de réalisation")
 
 Base = declarative_base()
 
