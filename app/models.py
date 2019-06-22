@@ -39,6 +39,7 @@ class Oeuvre(BaseModel):
         [], description="Calques contenant des informations sur l'oeuvre"
     )
 
+#Classe permettant de mettre en oeuvre les routes PUT
 class PutOeuvre(BaseModel):
     titre: Optional[str] = Schema(None, min_length=1, description="Titre de l'oeuvre")
     auteur:Optional[str] = Schema(None,min_length=1, description="Créateur de l'oeuvre")
@@ -46,6 +47,14 @@ class PutOeuvre(BaseModel):
     hauteur:Optional[PositiveInt] = Schema (None , description= "Hauteur de l'oeuvre en cm")
     largeur:Optional[PositiveInt] = Schema (None, description="Largeur de l'oeuvre en cm")
     annee: Optional[int] = Schema(None, description="Année de réalisation")
+
+
+class PutCalque(BaseModel):
+    typeCalque: Optional[TypeCalque] = Schema(
+    "composition", description="Type de calque (composition, anecdote ..."
+    )
+    description: Optional[str] = Schema(None, min_length=1, description="Description du calque")
+    oeuvre_id: Optional[int] = Schema(None, gt=0, description="Id de l'oeuvre")
 
 Base = declarative_base()
 

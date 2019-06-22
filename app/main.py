@@ -1,7 +1,7 @@
 import uvicorn
 from fastapi import FastAPI, HTTPException, Depends, Form, File, UploadFile
 from starlette.status import HTTP_404_NOT_FOUND
-from models import Oeuvre, Calque, TypeCalque, Base, OeuvreDb, CalqueDb, PutOeuvre
+from models import Oeuvre, Calque, TypeCalque, Base, OeuvreDb, CalqueDb, PutOeuvre, PutCalque
 from datetime import datetime
 from starlette.staticfiles import StaticFiles
 from starlette.responses import Response
@@ -82,6 +82,8 @@ def get_oeuvre(db_session: Session, oeuvre_id: int) -> Optional[OeuvreDb]:
 def get_calques(db_session: Session, oeuvre_id: int) -> List[Optional[CalqueDb]]:
     return db_session.query(CalqueDb).filter(CalqueDb.oeuvre_id == oeuvre_id).all()
 
+def get_calque(db_session: Session, id: int) -> CalqueDb:
+    return db_session.query(CalqueDb).filter(CalqueDb.id == id).first()
 
 app = FastAPI(title="DDale API", version=os.getenv("API_VERSION", "dev"))
 
@@ -203,6 +205,25 @@ async def update_oeuvre(
     db.commit()
     db.refresh(oeuvre)
     return oeuvre
+
+
+@app.put("/calques/{id}", summary="Met à jour un calque", response_model=Calque)
+async def update_calque(
+    id:int, 
+    updates: PutCalque,
+    db: Session = Depends(get_db)
+):
+    
+    calque = get_calque(db, id=id)
+    if calque is None:
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND)
+    
+    for key, value in updates.dict().items():
+        if value is not None:
+            setattr(calque, key, value)
+    db.commit()
+    db.refresh(calque)
+    return calque
 
 
 
