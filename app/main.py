@@ -60,19 +60,17 @@ async def read_root():
 
 @app.get("/oeuvres/{oeuvre_id}", response_model=Oeuvre)
 async def read_oeuvre(oeuvre_id: int, db: Session = Depends(get_db)):
-    try:
-        oeuvre = get_oeuvre(db, oeuvre_id=oeuvre_id)
-        print(oeuvre)
-    except FileNotFoundError:
+    oeuvre = get_oeuvre(db, oeuvre_id=oeuvre_id)
+    print(oeuvre)
+    if oeuvre is None:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND)
     return oeuvre
 
 @app.get("/oeuvres/{oeuvre_id}/calques", response_model=List[Calque])
 async def read_calque(oeuvre_id: int, db: Session = Depends(get_db)):
-    try:
-        calque = get_calque(db, oeuvre_id=oeuvre_id)
-        print(calque)
-    except FileNotFoundError:
+    calque = get_calque(db, oeuvre_id=oeuvre_id)
+    print(calque)
+    if calque is None:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND)
     return calque
 
