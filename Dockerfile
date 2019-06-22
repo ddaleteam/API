@@ -8,6 +8,8 @@ EXPOSE 9000
 
 COPY ./app /app
 
+VOLUME [ "/app/calques", "/app/audios", "/app/cibles" ]
+
 WORKDIR /app
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "9000"]

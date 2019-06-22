@@ -45,7 +45,7 @@ def get_db(request: Request):
     return request.state.db
 
 def get_oeuvre(db_session: Session, oeuvre_id: int) -> OeuvreDb:
-    return db_session.query(OeuvreDb).options(joinedload(OeuvreDb.calques,innerjoin=True)).filter(OeuvreDb.id == oeuvre_id).first()
+    return db_session.query(OeuvreDb).options(joinedload(OeuvreDb.calques)).filter(OeuvreDb.id == oeuvre_id).first()
 # L'option joinedload réalise la jointure dans python, innerjoin spécifie qu'elle se fait dans l'objet appelé.
 
 def get_calque(db_session: Session, oeuvre_id: int) -> List[CalqueDb]:
