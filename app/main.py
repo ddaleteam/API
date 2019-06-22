@@ -58,7 +58,7 @@ async def read_root():
     return {"Hello": "World"}
 
 
-@app.get("/oeuvres/{oeuvre_id}")
+@app.get("/oeuvres/{oeuvre_id}", response_model=Oeuvre)
 async def read_oeuvre(oeuvre_id: int, db: Session = Depends(get_db)):
     try:
         oeuvre = get_oeuvre(db, oeuvre_id=oeuvre_id)
