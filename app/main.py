@@ -273,6 +273,24 @@ async def update_oeuvre(
     db.refresh(oeuvre)
     return oeuvre
 
+@app.put("/calques/{id}/audio", summary="Met à jour l'audio d'un calque")
+async def update_audio(
+    id: int,
+    audio: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    calque = get_calque(db, id=id)
+    if calque is None:
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND)
+    
+    nom_audio = uuid.uuid4()
+    newUrlAudio = f"audios/{nom_audio}{audio.filename[-4:]}"
+    with open(newUrlAudio, "wb+") as fichier_audio:
+        fichier_audio.write(audio.file.read())
+    setattr(calque, "urlAudio", newUrlAudio)
+    db.commit()
+    db.refresh(calque)
+    return calque
 
 @app.put("/calques/{id}", summary="Met à jour un calque", response_model=Calque)
 async def update_calque(
