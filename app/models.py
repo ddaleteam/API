@@ -37,7 +37,7 @@ class Oeuvre(BaseModel):
     annee: int = Schema(..., description="Année de réalisation")
     urlCible: str = Schema(..., min_length=1, description="Url de l'image du tableau")
     urlAudio: str = Schema("", description="Url du fichier audio pour le tableau")
-    parcours_id: int = Schema(...,gt=0, description="Id du parcours")
+    parcours_id: Optional[int] = Schema(None,gt=0, description="Id du parcours")
     calques: List[Calque] = Schema(
         [], description="Calques contenant des informations sur l'oeuvre"
     )
@@ -61,7 +61,7 @@ class PutOeuvre(BaseModel):
     longitude: Optional[float] = Schema(None, description="Longitude de l'oeuvre")
     altitude: Optional[float] = Schema(None, description="Altitude de l'oeuvre")
     annee: Optional[int] = Schema(None, description="Année de réalisation")
-
+    parcours_id: Optional[int] = Schema(None,gt=0, description="Id du parcours")
 
 class PutCalque(BaseModel):
     typeCalque: Optional[TypeCalque] = Schema(
