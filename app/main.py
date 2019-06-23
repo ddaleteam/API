@@ -161,7 +161,9 @@ async def create_oeuvre(
     annee: int = Form(...),
     image: UploadFile = File(...),
     audio: UploadFile = File(None),
+    parcours_id: int = Form(None),
     db: Session = Depends(get_db),
+    
 ):
     # Génération d'un nom aléatoire pour les fichiers
     nom_image = uuid.uuid4()
@@ -191,14 +193,29 @@ async def create_oeuvre(
         annee=annee,
         urlCible=urlCible,
         urlAudio=urlAudio,
-        id_parcours=id_parcours
+        parcours_id=parcours_id,
     )
     db_session.add(newOeuvre)
     db_session.commit()
     db_session.refresh(newOeuvre)
     return newOeuvre
 
-
+@app.post("/parcours", summary="Crée un parcours")
+async def create_parcours(
+    id: int = Form(...),
+    nom: str = Form(...),
+    duree: int = Form(...),
+    db: Session = Depends(get_db),
+):
+    #Génération du nouveau parcours
+    newParcours = ParcoursDb(
+        nom=nom,
+        duree=duree,
+    )
+    db.add(newParcours)
+    db.commit()
+    db.refresh(newParcours)
+    return newParcours
 
 
 @app.post("/oeuvres/{oeuvres_id}/calques", summary="Crée un calque")
