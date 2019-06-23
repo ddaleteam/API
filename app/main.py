@@ -1,20 +1,18 @@
+import os
+import uuid
+from typing import List, Optional
+
 import uvicorn
 from fastapi import FastAPI, HTTPException, Depends, Form, File, UploadFile
-from starlette.status import HTTP_404_NOT_FOUND
 from models import Oeuvre, Calque, Parcours, TypeCalque, Base, OeuvreDb, CalqueDb, ParcoursDb, PutOeuvre, PutCalque
-from datetime import datetime
-from starlette.staticfiles import StaticFiles
-from starlette.responses import Response
-from starlette.requests import Request
-from sqlalchemy.orm import validates
-from sqlalchemy import Boolean, Column, Integer, String, create_engine, Float
-from sqlalchemy.ext.declarative import declarative_base, declared_attr
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import create_engine
 from sqlalchemy import exc
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.orm import joinedload
-import uuid
-import os
-from typing import List, Optional
+from starlette.requests import Request
+from starlette.responses import Response
+from starlette.staticfiles import StaticFiles
+from starlette.status import HTTP_404_NOT_FOUND
 
 SQLALCHEMY_DATABASE_URI = "sqlite:///./database_ddale.db"
 
@@ -161,7 +159,7 @@ async def create_oeuvre(
     annee: int = Form(...),
     image: UploadFile = File(...),
     audio: UploadFile = File(None),
-    parcours_id: int = Form(None),
+        parcours_id: int = Form(...),
     db: Session = Depends(get_db),
     
 ):
@@ -182,9 +180,9 @@ async def create_oeuvre(
 
     # Génération de la nouvelle oeuvre
     newOeuvre = OeuvreDb(
-        titre=titre,
-        auteur=auteur,
-        technique=technique,
+        titre=titre.encode("latin-1").decode("utf-8"),
+        auteur=auteur.encode("latin-1").decode("utf-8"),
+        technique=technique.encode("latin-1").decode("utf-8"),
         hauteur=hauteur,
         largeur=largeur,
         latitude=latitude,
@@ -245,7 +243,7 @@ async def create_calque(
     # Génération du nouveau calque
     newCalque = CalqueDb(
         typeCalque=typeCalque.name,
-        description=description,
+        description=description.encode("latin-1").decode("utf-8"),
         oeuvre_id=oeuvre_id,
         urlCalque=urlCalque,
         urlAudio=urlAudio,
