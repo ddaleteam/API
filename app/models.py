@@ -2,7 +2,7 @@ from pydantic import BaseModel, UrlStr, Schema, PositiveInt
 from datetime import datetime
 from typing import List,Optional
 from enum import Enum
-from sqlalchemy import Boolean, Column, Integer, String, create_engine
+from sqlalchemy import Boolean, Column, Integer, String, create_engine, Float
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -31,6 +31,9 @@ class Oeuvre(BaseModel):
     technique: str = Schema(..., min_length=1, description="Technique utilisée")
     hauteur: PositiveInt = Schema(..., description="Hauteur de l'oeuvre en cm")
     largeur: PositiveInt = Schema(..., description="Largeur de l'oeuvre en cm")
+    latitude: float = Schema(..., description="Latitude de l'oeuvre")
+    longitude: float = Schema(..., description="Longitude de l'oeuvre")
+    altitude: float = Schema(..., description="Altitude de l'oeuvre")
     annee: int = Schema(..., description="Année de réalisation")
     urlCible: str = Schema(..., min_length=1, description="Url de l'image du tableau")
     urlAudio: str = Schema("", description="Url du fichier audio pour le tableau")
@@ -46,6 +49,9 @@ class PutOeuvre(BaseModel):
     technique: Optional[str] = Schema (None,min_length=1, description= "Technique utilisée")
     hauteur:Optional[PositiveInt] = Schema (None , description= "Hauteur de l'oeuvre en cm")
     largeur:Optional[PositiveInt] = Schema (None, description="Largeur de l'oeuvre en cm")
+    latitude: Optional[float] = Schema(None, description="Latitude de l'oeuvre")
+    longitude: Optional[float] = Schema(None, description="Longitude de l'oeuvre")
+    altitude: Optional[float] = Schema(None, description="Altitude de l'oeuvre")
     annee: Optional[int] = Schema(None, description="Année de réalisation")
 
 
@@ -68,6 +74,9 @@ class OeuvreDb(Base):
     technique = Column(String, nullable=False)
     hauteur = Column(Integer, nullable=False)
     largeur = Column(Integer, nullable=False)
+    latitude = Column(Float, nullable=False)
+    longitude = Column(Float, nullable=False)
+    altitude = Column(Float, nullable=False)
     annee = Column(Integer, nullable=False)
     urlCible = Column(String, nullable=False)
     urlAudio = Column(String)
