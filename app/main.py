@@ -1,20 +1,18 @@
+import os
+import uuid
+from typing import List, Optional
+
 import uvicorn
 from fastapi import FastAPI, HTTPException, Depends, Form, File, UploadFile
-from starlette.status import HTTP_404_NOT_FOUND
 from models import Oeuvre, Calque, Parcours, TypeCalque, Base, OeuvreDb, CalqueDb, ParcoursDb, PutOeuvre, PutCalque
-from datetime import datetime
-from starlette.staticfiles import StaticFiles
-from starlette.responses import Response
-from starlette.requests import Request
-from sqlalchemy.orm import validates
-from sqlalchemy import Boolean, Column, Integer, String, create_engine, Float
-from sqlalchemy.ext.declarative import declarative_base, declared_attr
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import create_engine
 from sqlalchemy import exc
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.orm import joinedload
-import uuid
-import os
-from typing import List, Optional
+from starlette.requests import Request
+from starlette.responses import Response
+from starlette.staticfiles import StaticFiles
+from starlette.status import HTTP_404_NOT_FOUND
 
 SQLALCHEMY_DATABASE_URI = "sqlite:///./database_ddale.db"
 
@@ -161,7 +159,7 @@ async def create_oeuvre(
     annee: int = Form(...),
     image: UploadFile = File(...),
     audio: UploadFile = File(None),
-    parcours_id: int = Form(None),
+        parcours_id: int = Form(...),
     db: Session = Depends(get_db),
     
 ):
@@ -182,9 +180,9 @@ async def create_oeuvre(
 
     # Génération de la nouvelle oeuvre
     newOeuvre = OeuvreDb(
-        titre=titre,
-        auteur=auteur,
-        technique=technique,
+        titre=titre.encode("latin-1").decode("utf-8"),
+        auteur=auteur.encode("latin-1").decode("utf-8"),
+        technique=technique.encode("latin-1").decode("utf-8"),
         hauteur=hauteur,
         largeur=largeur,
         latitude=latitude,
@@ -245,7 +243,7 @@ async def create_calque(
     # Génération du nouveau calque
     newCalque = CalqueDb(
         typeCalque=typeCalque.name,
-        description=description,
+        description=description.encode("latin-1").decode("utf-8"),
         oeuvre_id=oeuvre_id,
         urlCalque=urlCalque,
         urlAudio=urlAudio,
@@ -273,6 +271,24 @@ async def update_oeuvre(
     db.refresh(oeuvre)
     return oeuvre
 
+@app.put("/calques/{id}/audio", summary="Met à jour l'audio d'un calque")
+async def update_audio(
+    id: int,
+    audio: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    calque = get_calque(db, id=id)
+    if calque is None:
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND)
+    
+    nom_audio = uuid.uuid4()
+    newUrlAudio = f"audios/{nom_audio}{audio.filename[-4:]}"
+    with open(newUrlAudio, "wb+") as fichier_audio:
+        fichier_audio.write(audio.file.read())
+    setattr(calque, "urlAudio", newUrlAudio)
+    db.commit()
+    db.refresh(calque)
+    return calque
 
 @app.put("/calques/{id}", summary="Met à jour un calque", response_model=Calque)
 async def update_calque(
