@@ -1,6 +1,6 @@
 from pydantic import BaseModel, UrlStr, Schema, PositiveInt
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 from enum import Enum
 from sqlalchemy import Boolean, Column, Integer, String, Float, create_engine
 from sqlalchemy import ForeignKey
@@ -43,6 +43,22 @@ class Oeuvre(BaseModel):
     longitude: float = Schema(..., description="Longitude de l'oeuvre")
     altitude: float = Schema(..., description="Altitude de l'oeuvre")
 
+#Classe permettant de mettre en oeuvre les routes PUT
+class PutOeuvre(BaseModel):
+    titre: Optional[str] = Schema(None, min_length=1, description="Titre de l'oeuvre")
+    auteur:Optional[str] = Schema(None,min_length=1, description="Créateur de l'oeuvre")
+    technique: Optional[str] = Schema (None,min_length=1, description= "Technique utilisée")
+    hauteur:Optional[PositiveInt] = Schema (None , description= "Hauteur de l'oeuvre en cm")
+    largeur:Optional[PositiveInt] = Schema (None, description="Largeur de l'oeuvre en cm")
+    annee: Optional[int] = Schema(None, description="Année de réalisation")
+
+
+class PutCalque(BaseModel):
+    typeCalque: Optional[TypeCalque] = Schema(
+    "composition", description="Type de calque (composition, anecdote ..."
+    )
+    description: Optional[str] = Schema(None, min_length=1, description="Description du calque")
+    oeuvre_id: Optional[int] = Schema(None, gt=0, description="Id de l'oeuvre")
 
 Base = declarative_base()
 
