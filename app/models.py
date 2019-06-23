@@ -1,8 +1,8 @@
 from pydantic import BaseModel, UrlStr, Schema, PositiveInt
 from datetime import datetime
-from typing import List,Optional
+from typing import List
 from enum import Enum
-from sqlalchemy import Boolean, Column, Integer, String, create_engine
+from sqlalchemy import Boolean, Column, Integer, String, Float, create_engine
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -36,25 +36,13 @@ class Oeuvre(BaseModel):
     urlAudio: str = Schema("", description="Url du fichier audio pour le tableau")
 
     calques: List[Calque] = Schema(
-        [], description="Calques contenant des informations sur l'oeuvre"
+        ..., description="Calques contenant des informations sur l'oeuvre"
     )
 
-#Classe permettant de mettre en oeuvre les routes PUT
-class PutOeuvre(BaseModel):
-    titre: Optional[str] = Schema(None, min_length=1, description="Titre de l'oeuvre")
-    auteur:Optional[str] = Schema(None,min_length=1, description="Créateur de l'oeuvre")
-    technique: Optional[str] = Schema (None,min_length=1, description= "Technique utilisée")
-    hauteur:Optional[PositiveInt] = Schema (None , description= "Hauteur de l'oeuvre en cm")
-    largeur:Optional[PositiveInt] = Schema (None, description="Largeur de l'oeuvre en cm")
-    annee: Optional[int] = Schema(None, description="Année de réalisation")
+    latitude: float = Schema(..., description="Latitude de l'oeuvre")
+    longitude: float = Schema(..., description="Longitude de l'oeuvre")
+    altitude: float = Schema(..., description="Altitude de l'oeuvre")
 
-
-class PutCalque(BaseModel):
-    typeCalque: Optional[TypeCalque] = Schema(
-    "composition", description="Type de calque (composition, anecdote ..."
-    )
-    description: Optional[str] = Schema(None, min_length=1, description="Description du calque")
-    oeuvre_id: Optional[int] = Schema(None, gt=0, description="Id de l'oeuvre")
 
 Base = declarative_base()
 
@@ -73,6 +61,9 @@ class OeuvreDb(Base):
     urlAudio = Column(String)
     # Le champs 'calques' permet de réaliser la jointure vers les calques.
     calques = relationship("CalqueDb", back_populates="oeuvre")
+    latitude = Column(Float, nullable=False)
+    longitude = Column(Float, nullable=False)
+    altitude = Column(Float, nullable=False)
 
 
 class CalqueDb(Base):

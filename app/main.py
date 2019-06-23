@@ -1,13 +1,12 @@
-import uvicorn
 from fastapi import FastAPI, HTTPException, Depends, Form, File, UploadFile
 from starlette.status import HTTP_404_NOT_FOUND
-from models import Oeuvre, Calque, TypeCalque, Base, OeuvreDb, CalqueDb, PutOeuvre, PutCalque
+from models import Oeuvre, Calque, TypeCalque, Base, OeuvreDb, CalqueDb
 from datetime import datetime
 from starlette.staticfiles import StaticFiles
 from starlette.responses import Response
 from starlette.requests import Request
 from sqlalchemy.orm import validates
-from sqlalchemy import Boolean, Column, Integer, String, create_engine
+from sqlalchemy import Boolean, Column, Integer, String, Float, create_engine
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy import exc
@@ -39,6 +38,9 @@ try:
         annee=1818,
         urlCible="https://example.com",
         urlAudio="https://aiunrste.com",
+        latitude=48.861, 
+        longitude=2.33583,
+        altitude=35,
         calques=[
             CalqueDb(
                 typeCalque="anecdote",
@@ -79,13 +81,11 @@ def get_oeuvre(db_session: Session, oeuvre_id: int) -> Optional[OeuvreDb]:
     )
 
 
-def get_calques(db_session: Session, oeuvre_id: int) -> List[Optional[CalqueDb]]:
+def get_calque(db_session: Session, oeuvre_id: int) -> List[Optional[CalqueDb]]:
     return db_session.query(CalqueDb).filter(CalqueDb.oeuvre_id == oeuvre_id).all()
 
-def get_calque(db_session: Session, id: int) -> CalqueDb:
-    return db_session.query(CalqueDb).filter(CalqueDb.id == id).first()
 
-app = FastAPI(title="DDale API", version=os.getenv("API_VERSION", "dev"))
+app = FastAPI(title="DDale API", version=os.environ["API_VERSION"])
 
 
 @app.get("/")
@@ -103,8 +103,10 @@ async def read_oeuvre(oeuvre_id: int, db: Session = Depends(get_db)):
 
 @app.get("/oeuvres/{oeuvre_id}/calques", response_model=List[Calque])
 async def read_calque(oeuvre_id: int, db: Session = Depends(get_db)):
-    calques = get_calques(db, oeuvre_id=oeuvre_id)
-    return calques
+    calque = get_calque(db, oeuvre_id=oeuvre_id)
+    if calque is None:
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND)
+    return calque
 
 
 @app.post("/oeuvres", summary="Crée une oeuvre")
@@ -115,6 +117,9 @@ async def create_oeuvre(
     hauteur: int = Form(...),
     largeur: int = Form(...),
     annee: int = Form(...),
+    latitude: float = Form(...),
+    longitude: float = Form(...),
+    altitude: float = Form(...),
     image: UploadFile = File(...),
     audio: UploadFile = File(None),
     db: Session = Depends(get_db),
@@ -142,6 +147,9 @@ async def create_oeuvre(
         hauteur=hauteur,
         largeur=largeur,
         annee=annee,
+        latitude=latitude,
+        longitude=longitude,
+        altitude=altitude,
         urlCible=urlCible,
         urlAudio=urlAudio,
     )
@@ -188,44 +196,6 @@ async def create_calque(
     db_session.refresh(newCalque)
     return newCalque
 
-@app.put("/oeuvres/{oeuvre_id}", summary="Met à jour une oeuvre", response_model=Oeuvre)
-async def update_oeuvre(
-    oeuvre_id:int, 
-    updates: PutOeuvre,
-    db: Session = Depends(get_db)
-):
-    
-    oeuvre = get_oeuvre(db, oeuvre_id=oeuvre_id)
-    if oeuvre is None:
-        raise HTTPException(status_code=HTTP_404_NOT_FOUND)
-    
-    for key, value in updates.dict().items():
-        if value is not None:
-            setattr(oeuvre, key, value)
-    db.commit()
-    db.refresh(oeuvre)
-    return oeuvre
-
-
-@app.put("/calques/{id}", summary="Met à jour un calque", response_model=Calque)
-async def update_calque(
-    id:int, 
-    updates: PutCalque,
-    db: Session = Depends(get_db)
-):
-    
-    calque = get_calque(db, id=id)
-    if calque is None:
-        raise HTTPException(status_code=HTTP_404_NOT_FOUND)
-    
-    for key, value in updates.dict().items():
-        if value is not None:
-            setattr(calque, key, value)
-    db.commit()
-    db.refresh(calque)
-    return calque
-
-
 
 @app.middleware("http")
 async def db_session_middleware(request: Request, call_next) -> Response:
@@ -241,6 +211,3 @@ async def db_session_middleware(request: Request, call_next) -> Response:
 app.mount("/calques", StaticFiles(directory="calques"), name="calques")
 app.mount("/cibles", StaticFiles(directory="cibles"), name="cibles")
 app.mount("/audios", StaticFiles(directory="audios"), name="audios")
-
-if __name__ == '__main__':
-    uvicorn.run(app, host="0.0.0.0", port=8000)
