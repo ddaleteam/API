@@ -7,7 +7,7 @@ from starlette.staticfiles import StaticFiles
 from starlette.responses import Response
 from starlette.requests import Request
 from sqlalchemy.orm import validates
-from sqlalchemy import Boolean, Column, Integer, String, create_engine
+from sqlalchemy import Boolean, Column, Integer, String, create_engine, Float
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy import exc
@@ -37,6 +37,9 @@ try:
         hauteur=491,
         largeur=716,
         annee=1818,
+        latitude=48.861,
+        longitude=2.33583,
+        altitude=35,
         urlCible="https://example.com",
         urlAudio="https://aiunrste.com",
         calques=[
@@ -114,6 +117,9 @@ async def create_oeuvre(
     technique: str = Form(...),
     hauteur: int = Form(...),
     largeur: int = Form(...),
+    latitude: float = Form(...),
+    longitude: float = Form(...),
+    altitude: float = Form(...),
     annee: int = Form(...),
     image: UploadFile = File(...),
     audio: UploadFile = File(None),
@@ -141,6 +147,9 @@ async def create_oeuvre(
         technique=technique,
         hauteur=hauteur,
         largeur=largeur,
+        latitude=latitude,
+        longitude=longitude,
+        altitude=altitude,
         annee=annee,
         urlCible=urlCible,
         urlAudio=urlAudio,
