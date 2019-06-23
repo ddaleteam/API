@@ -37,9 +37,17 @@ class Oeuvre(BaseModel):
     annee: int = Schema(..., description="Année de réalisation")
     urlCible: str = Schema(..., min_length=1, description="Url de l'image du tableau")
     urlAudio: str = Schema("", description="Url du fichier audio pour le tableau")
-
+    parcours_id: int = Schema(...,gt=0, description="Id du parcours")
     calques: List[Calque] = Schema(
         [], description="Calques contenant des informations sur l'oeuvre"
+    )
+
+class Parcours(BaseModel):
+    id: int = Schema(..., gt=0, description="Id du parcours")
+    nom: str = Schema(..., min_length=1, description="Nom du parcours")
+    duree: int = Schema(..., min_length=1, description="Durée du parcours")
+    oeuvres: List[Oeuvre] = Schema(
+        [], description="Oeuvres composant le parcours"
     )
 
 #Classe permettant de mettre en oeuvre les routes PUT
@@ -80,8 +88,10 @@ class OeuvreDb(Base):
     annee = Column(Integer, nullable=False)
     urlCible = Column(String, nullable=False)
     urlAudio = Column(String)
+    parcours_id = Column(Integer, ForeignKey("parcours.id"), nullable=False)
     # Le champs 'calques' permet de réaliser la jointure vers les calques.
     calques = relationship("CalqueDb", back_populates="oeuvre")
+    parcours = relationship("ParcoursDb", back_populates="oeuvres")
 
 
 class CalqueDb(Base):
@@ -96,5 +106,12 @@ class CalqueDb(Base):
     # Le champs 'oeuvre' permet de réaliser la jointure vers l'oeuvre.
     oeuvre = relationship("OeuvreDb", back_populates="calques")
 
+class ParcoursDb(Base):
+    __tablename__="parcours"
+    id = Column(Integer, primary_key=True)
+    nom = Column(String, nullable=False)
+    duree = Column(Integer, nullable=False)
+    oeuvres = relationship("OeuvreDb", back_populates="parcours")
+    
 
 # Faire la jointure dans les deux sens permet de charger le calque à partir de l'oeuvre et vice-versa.
